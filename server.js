@@ -170,6 +170,10 @@ app.get('/proxy', async (req, res) => {
 
 // Fallback route
 app.get('*', (req, res) => {
+  // Always serve a fresh index.html (avoid client caching of the shell)
+  res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
   res.sendFile(path.join(publicDir, 'index.html'));
 });
 
