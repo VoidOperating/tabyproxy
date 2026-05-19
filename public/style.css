@@ -439,3 +439,60 @@ button.primary:active {
     padding: 20px;
   }
 }
+
+/* Emulator overlay styles */
+.emulator-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  display: none;
+  flex-direction: column;
+  z-index: 10000;
+}
+.emulator-overlay[aria-hidden="false"] {
+  display: flex;
+}
+.emulator-topbar {
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  background: linear-gradient(90deg, rgba(0,0,0,0.6), rgba(20,20,20,0.4));
+  border-bottom: 1px solid rgba(255,20,147,0.08);
+}
+.emulator-title {
+  color: var(--text-light);
+  font-weight: 700;
+}
+.emulator-controls button {
+  margin-left: 8px;
+  background: transparent;
+  color: var(--text-light);
+  border: 1px solid rgba(255,255,255,0.06);
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.emulator-controls button:hover {
+  background: rgba(255,20,147,0.06);
+}
+.emulator-frame {
+  flex: 1 1 auto;
+  border: none;
+  width: 100%;
+  height: calc(100vh - 56px);
+  background: #fff;
+}
+.emulator-error {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(20,20,20,0.95);
+  color: var(--text-light);
+  padding: 18px 22px;
+  border-radius: 12px;
+  text-align: center;
+}
+.emulator-error a { color: var(--primary-light); }

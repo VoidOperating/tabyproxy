@@ -68,6 +68,24 @@
       </main>
     </div>
 
+    <!-- Emulator overlay: fullscreen iframe for proxied sites -->
+    <div id="emulator" class="emulator-overlay" aria-hidden="true">
+      <div class="emulator-topbar">
+        <div class="emulator-title">Emulator</div>
+        <div class="emulator-controls">
+          <button id="emulator-back" title="Back">◀</button>
+          <button id="emulator-forward" title="Forward">▶</button>
+          <button id="emulator-reload" title="Reload">⟳</button>
+          <button id="emulator-open" title="Open original" aria-label="Open original in new tab">🔗</button>
+          <button id="emulator-close" title="Close emulator" aria-label="Close">✕</button>
+        </div>
+      </div>
+      <iframe id="emulatorFrame" class="emulator-frame" sandbox="allow-forms allow-scripts allow-same-origin allow-popups"></iframe>
+      <div id="emulator-error" class="emulator-error" role="alert" hidden>
+        <p>Unable to load the site inside the emulator. <a id="emulator-original-link" href="#" target="_blank" rel="noopener">Open original</a></p>
+      </div>
+    </div>
+
     <script src="script.js?v=2"></script>
   </body>
 </html>

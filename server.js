@@ -22,7 +22,7 @@ app.use(express.static(publicDir, {
 // Performance: Add response headers for better caching
 app.use((req, res, next) => {
   res.set('X-Content-Type-Options', 'nosniff');
-  res.set('X-Frame-Options', 'SAMEORIGIN');
+  // Do NOT set X-Frame-Options globally so proxied content can be embedded in the emulator iframe
   next();
 });
 
@@ -104,6 +104,24 @@ const rewriteHtml = (html, targetUrl) => {
       const redirectUrl = parts[1].trim().slice(4);
       $(element).attr('content', `${parts[0]}; url=/proxy?url=${encodeURIComponent(new URL(redirectUrl, baseUrl).href)}`);
     }
+  });
+
+  // Remove Content-Security-Policy meta tags to relax embedding restrictions
+  $('meta[http-equiv="Content-Security-Policy"]').remove();
+  $('meta[name="content-security-policy"]').remove();
+
+  // Remove common frame-busting / redirect inline scripts
+  $('script').each((_, element) => {
+    const src = $(element).attr('src');
+    const text = ($(element).html() || '').trim();
+    if (!src && /top\.location|parent\.location|window\.top|self!==top|self!=top|frameElement|if\s*\(top\s*!==\s*self\)/i.test(text)) {
+      $(element).remove();
+    }
+  });
+
+  // Remove inline onload/onunload handlers that attempt redirects
+  $('[onload],[onunload],[onbeforeunload]').each((_, el) => {
+    $(el).removeAttr('onload').removeAttr('onunload').removeAttr('onbeforeunload');
   });
 
   return $.html();

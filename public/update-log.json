@@ -10,6 +10,16 @@
     "detail": "Fixed an issue where some proxied sites returned GitHub Pages 404 content. Proxy now detects remote 4xx errors and shows a clear error page with a link to open the original site. Added logging for failed fetches."
   },
   {
+    "date": "2026-05-19",
+    "title": "Feature 0.06 - Emulator Proxy",
+    "detail": "Added a fullscreen emulator overlay that loads proxied sites inside an iframe with a top toolbar (close, reload, open original, back/forward). Pre-checks remote responses and falls back to opening the original site if blocked."
+  },
+  {
+    "date": "2026-05-19",
+    "title": "Hotfix 0.06.1 - CSP & Framebusting Stripping",
+    "detail": "Stripped Content-Security-Policy meta tags and removed common frame-busting inline scripts/attributes so social platforms (YouTube, TikTok, Instagram, X) are more likely to load inside the emulator. Note: some sites may still block embedding or break due to cross-origin restrictions."
+  },
+  {
     "date": "2026-05-20",
     "title": "Update 0.04 - Bug Fixes & Optimization",
     "detail": "Fixed critical performance issues. Optimized lazy loading and caching. Improved proxy engine stability. Enhanced error handling and user feedback."
