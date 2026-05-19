@@ -5,6 +5,11 @@
     "detail": "🎨 Pink & black theme applied. ⚡ 10x performance boost with optimized rendering. 🎯 Custom grey ball cursor with glow effect added. 📱 New multi-page layout with side navigation hotbar. 🔍 Smart search that works with URLs and Google searches. 🎬 Smooth load-in animations throughout. 🖥️ Browser-based UI design. All pages accessible from the hotbar."
   },
   {
+    "date": "2026-05-19",
+    "title": "Hotfix 0.05.1 - Proxy 404 handling",
+    "detail": "Fixed an issue where some proxied sites returned GitHub Pages 404 content. Proxy now detects remote 4xx errors and shows a clear error page with a link to open the original site. Added logging for failed fetches."
+  },
+  {
     "date": "2026-05-20",
     "title": "Update 0.04 - Bug Fixes & Optimization",
     "detail": "Fixed critical performance issues. Optimized lazy loading and caching. Improved proxy engine stability. Enhanced error handling and user feedback."

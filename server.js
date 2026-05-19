@@ -148,22 +148,31 @@ app.get('/proxy', async (req, res) => {
       redirect: 'follow',
       timeout: 10000
     });
-
     const contentType = response.headers.get('content-type') || 'application/octet-stream';
-    
+
     // Set cache headers for proxied content
     res.set('Cache-Control', 'public, max-age=3600');
-    
+
+    // Handle HTML responses specially so we can detect remote 404/GitHub Pages messages
     if (contentType.includes('text/html')) {
       const html = await response.text();
+
+      // Detect GitHub Pages default 404 page or other remote errors
+      const isGitHubPages404 = /There isn't a GitHub Pages site here\.|GitHub Pages/.test(html) || response.status >= 400;
+      if (isGitHubPages404) {
+        console.warn(`Proxy fetch returned status ${response.status} for ${targetUrl.href}`);
+        const errorHtml = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Proxy error</title><style>body{background:#0a0a0a;color:#fff;font-family:Inter,system-ui,sans-serif;padding:32px}a{color:#ff69b4}</style></head><body><h1>Unable to load remote page</h1><p>The proxied site <strong>${escapeHtml(targetUrl.href)}</strong> returned an error (status ${response.status}).</p><p>This can happen when the target site blocks automated requests or redirects to a static hosting 404 page.</p><p>You can try opening the site directly: <a href="${escapeHtml(targetUrl.href)}" target="_blank" rel="noopener">Open original site</a></p></body></html>`;
+        return res.status(502).type('html').send(errorHtml);
+      }
+
       const rewritten = rewriteHtml(html, targetUrl);
-      res.type('html').send(rewritten);
+      return res.type('html').send(rewritten);
     } else {
       const buffer = Buffer.from(await response.arrayBuffer());
-      res.set('content-type', contentType).send(buffer);
+      return res.set('content-type', contentType).send(buffer);
     }
   } catch (error) {
-    console.error('Proxy error:', error.message);
+    console.error('Proxy error:', error && error.message ? error.message : error);
     res.status(500).send('Failed to fetch the requested page. Please check the URL and try again.');
   }
 });
@@ -181,3 +190,13 @@ app.listen(PORT, () => {
   console.log(`🎨 Taby Proxy v2.0 running on http://localhost:${PORT}`);
   console.log(`✨ Pink & Black theme | ⚡ 10x faster | 🎯 Multi-page layout`);
 });
+
+// small utility to escape HTML in error pages
+function escapeHtml(unsafe) {
+  return String(unsafe)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
