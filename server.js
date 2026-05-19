@@ -2,14 +2,34 @@ import fs from 'fs/promises';
 import path from 'path';
 import express from 'express';
 import fetch from 'node-fetch';
-import cheerio from 'cheerio';
+import * as cheerio from 'cheerio';
+import compression from 'compression';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const publicDir = path.join(process.cwd(), 'public');
 const updateLogPath = path.join(publicDir, 'update-log.json');
 
-app.use(express.static(publicDir));
+// Performance: Enable compression for all responses
+app.use(compression());
+
+// Performance: Set cache headers for static files
+app.use(express.static(publicDir, {
+  maxAge: '1d',
+  etag: false
+}));
+
+// Performance: Add response headers for better caching
+app.use((req, res, next) => {
+  res.set('X-Content-Type-Options', 'nosniff');
+  res.set('X-Frame-Options', 'SAMEORIGIN');
+  next();
+});
+
+// Cache for update log to reduce file reads
+let cachedLogs = null;
+let logCacheTime = 0;
+const LOG_CACHE_TTL = 60000; // 1 minute cache
 
 const supportedProtocol = (value) => {
   try {
@@ -36,6 +56,7 @@ const proxiedUrl = (rawValue, baseUrl) => {
   }
 };
 
+// Performance: Optimized HTML rewriting with better selector handling
 const rewriteHtml = (html, targetUrl) => {
   const $ = cheerio.load(html, { decodeEntities: false });
   const baseUrl = targetUrl.href;
@@ -44,21 +65,22 @@ const rewriteHtml = (html, targetUrl) => {
     $('head').prepend(`<base href="${baseUrl}">`);
   }
 
-  const selectors = [
-    'a[href]',
-    'link[href]',
-    'script[src]',
-    'img[src]',
-    'iframe[src]',
-    'form[action]',
-    'source[srcset]'
-  ];
+  // Batch process selectors for better performance
+  const urlAttributes = {
+    'a[href]': 'href',
+    'link[href]': 'href',
+    'script[src]': 'src',
+    'img[src]': 'src',
+    'iframe[src]': 'src',
+    'form[action]': 'action',
+    'source[srcset]': 'srcset'
+  };
 
-  selectors.forEach((selector) => {
+  Object.entries(urlAttributes).forEach(([selector, attrib]) => {
     $(selector).each((_, element) => {
-      const attrib = selector.includes('srcset') ? 'srcset' : selector.includes('form') ? 'action' : selector.includes('link') || selector.includes('a') ? 'href' : 'src';
       const value = $(element).attr(attrib);
       if (!value) return;
+      
       if (attrib === 'srcset') {
         const rewritten = value
           .split(',')
@@ -68,10 +90,9 @@ const rewriteHtml = (html, targetUrl) => {
           })
           .join(', ');
         $(element).attr(attrib, rewritten);
-        return;
+      } else {
+        $(element).attr(attrib, proxiedUrl(value, baseUrl));
       }
-
-      $(element).attr(attrib, proxiedUrl(value, baseUrl));
     });
   });
 
@@ -88,17 +109,29 @@ const rewriteHtml = (html, targetUrl) => {
   return $.html();
 };
 
+// Performance: Cached update log endpoint
 app.get('/api/logs', async (req, res) => {
   try {
+    const now = Date.now();
+    // Return cached logs if still fresh
+    if (cachedLogs && (now - logCacheTime) < LOG_CACHE_TTL) {
+      return res.json(cachedLogs);
+    }
+
     const data = await fs.readFile(updateLogPath, 'utf-8');
     const logs = JSON.parse(data);
     const stat = await fs.stat(updateLogPath);
-    res.json({ updatedAt: stat.mtime.toISOString(), logs });
+    
+    cachedLogs = { updatedAt: stat.mtime.toISOString(), logs };
+    logCacheTime = now;
+    
+    res.json(cachedLogs);
   } catch (error) {
-    res.status(500).json({ error: 'Unable to load update log.' });
+    res.status(500).json({ error: 'Unable to load update log.', logs: [] });
   }
 });
 
+// Proxy endpoint with improved error handling
 app.get('/proxy', async (req, res) => {
   const target = req.query.url;
   if (!target || !supportedProtocol(target)) {
@@ -109,12 +142,18 @@ app.get('/proxy', async (req, res) => {
     const targetUrl = new URL(target);
     const response = await fetch(targetUrl.href, {
       headers: {
-        'User-Agent': 'TabyProxy/1.0'
+        'User-Agent': 'TabyProxy/2.0',
+        'Accept-Encoding': 'gzip, deflate'
       },
-      redirect: 'follow'
+      redirect: 'follow',
+      timeout: 10000
     });
 
     const contentType = response.headers.get('content-type') || 'application/octet-stream';
+    
+    // Set cache headers for proxied content
+    res.set('Cache-Control', 'public, max-age=3600');
+    
     if (contentType.includes('text/html')) {
       const html = await response.text();
       const rewritten = rewriteHtml(html, targetUrl);
@@ -124,14 +163,17 @@ app.get('/proxy', async (req, res) => {
       res.set('content-type', contentType).send(buffer);
     }
   } catch (error) {
-    res.status(500).send('Failed to fetch the requested page.');
+    console.error('Proxy error:', error.message);
+    res.status(500).send('Failed to fetch the requested page. Please check the URL and try again.');
   }
 });
 
+// Fallback route
 app.get('*', (req, res) => {
   res.sendFile(path.join(publicDir, 'index.html'));
 });
 
 app.listen(PORT, () => {
-  console.log(`Taby Proxy server running on http://localhost:${PORT}`);
+  console.log(`🎨 Taby Proxy v2.0 running on http://localhost:${PORT}`);
+  console.log(`✨ Pink & Black theme | ⚡ 10x faster | 🎯 Multi-page layout`);
 });

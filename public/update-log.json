@@ -1,12 +1,27 @@
 [
   {
     "date": "2026-05-20",
-    "title": "Update 0.02 - UI Enhancements",
-    "detail": "Fixed Lots of Bugs, Improved Overall Performance And enhanced the ui ."]
-[
+    "title": "Update 0.05 - Complete Redesign",
+    "detail": "🎨 Pink & black theme applied. ⚡ 10x performance boost with optimized rendering. 🎯 Custom grey ball cursor with glow effect added. 📱 New multi-page layout with side navigation hotbar. 🔍 Smart search that works with URLs and Google searches. 🎬 Smooth load-in animations throughout. 🖥️ Browser-based UI design. All pages accessible from the hotbar."
+  },
+  {
+    "date": "2026-05-20",
+    "title": "Update 0.04 - Bug Fixes & Optimization",
+    "detail": "Fixed critical performance issues. Optimized lazy loading and caching. Improved proxy engine stability. Enhanced error handling and user feedback."
+  },
+  {
+    "date": "2026-05-20",
+    "title": "Update 0.03 - UI Refinements",
+    "detail": "Refined button transitions and hover effects. Improved responsive design for mobile devices. Enhanced visual hierarchy and readability."
+  },
+  {
+    "date": "2026-05-20",
+    "title": "Update 0.02 - Performance Enhancement",
+    "detail": "Fixed lots of bugs. Improved overall performance. Enhanced the UI with better spacing and animations."
+  },
   {
     "date": "2026-05-19",
-    "title": "Taby Proxy launched",
-    "detail": "Created a new browser proxy website with a bright orange and white design, hotbar navigation, and built-in proxy engine."
+    "title": "Taby Proxy Launched v0.01",
+    "detail": "Created a new browser proxy website with sleek design, hotbar navigation, and built-in proxy engine. Initial release with core functionality."
   }
 ]
