@@ -1,0 +1,15 @@
+{
+  "name": "tabyproxy",
+  "version": "1.0.0",
+  "description": "Taby Proxy - a sleek orange and white browser proxy with a built-in engine.",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.14",
+    "express": "^4.18.4",
+    "node-fetch": "^3.4.1"
+  }
+}

@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>tabyproxy</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='75'>🐱</text></svg>">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        html, body {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #ffffff 0%, #fff7f1 28%, #ff7b1c 100%);
+            color: #1d1d1f;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        body {
+            min-height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+        .app-shell {
+            display: grid;
+            grid-template-columns: 100px 1fr;
+            width: 100%;
+            min-height: 100vh;
+        }
+        .hotbar {
+            padding: 24px 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 18px;
+            background: rgba(255, 255, 255, 0.92);
+            border-right: 2px solid #ff6818;
+            backdrop-filter: blur(18px);
+        }
+        .brand {
+            width: 58px;
+            height: 58px;
+            display: grid;
+            place-items: center;
+            border-radius: 20px;
+            border: 2px solid #ff6818;
+            background: #fff;
+            color: #ff6818;
+            font-size: 1.4rem;
+            font-weight: 800;
+        }
+        .hotbar button {
+            width: 56px;
+            height: 56px;
+            border-radius: 18px;
+            border: 2px solid #ff6818;
+            background: #fff;
+            color: #ff6818;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .hotbar button:hover,
+        .hotbar button:focus-visible {
+            transform: translateY(-2px);
+            box-shadow: 0 16px 28px rgba(255, 104, 24, 0.24);
+        }
+        .hotbar-footer {
+            margin-top: auto;
+            font-size: 0.8rem;
+            letter-spacing: 0.12em;
+            color: #6e6b70;
+            text-align: center;
+        }
+        .main-panel {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .browser-header {
+            position: sticky;
+            top: 0;
+            left: 0;
+            right: 0;
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr) auto;
+            align-items: center;
+            gap: 16px;
+            height: 72px;
+            background: rgba(255, 255, 255, 0.98);
+            border-bottom: 1px solid rgba(255, 104, 24, 0.18);
+            padding: 0 24px;
+            z-index: 999;
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+        }
+        .browser-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .browser-logo {
+            font-size: 20px;
+            font-weight: bold;
+            color: #1a1a1a;
+            white-space: nowrap;
+        }
+        .browser-title {
+            color: #ff6818;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+        }
+        .address-bar-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #f7f2ee;
+            border-radius: 28px;
+            padding: 10px 16px;
+            border: 1px solid #ffbe9a;
+        }
+        .lock-icon {
+            color: #555;
+            font-size: 14px;
+        }
+        .address-bar {
+            width: 100%;
+            background: none;
+            border: none;
+            color: #555;
+            font-size: 14px;
+            outline: none;
+            font-family: inherit;
+        }
+        .browser-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .browser-controls button {
+            width: 44px;
+            height: 44px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 104, 24, 0.35);
+            background: #fff;
+            color: #ff6818;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .browser-controls button:hover,
+        .browser-controls button:focus-visible {
+            transform: translateY(-1px);
+            box-shadow: 0 14px 22px rgba(255, 104, 24, 0.18);
+        }
+        .browser-controls button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .browser-status {
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.92);
+            border-bottom: 1px solid rgba(255, 104, 24, 0.12);
+            color: #6e6b70;
+            font-size: 0.95rem;
+            letter-spacing: 0.01em;
+        }
+        .content-wrapper {
+            overflow-y: auto;
+            padding: 24px;
+            flex: 1;
+        }
+        .content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            gap: 24px;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.96);
+            border-radius: 24px;
+            border: 2px solid #ff6818;
+            padding: 24px;
+            box-shadow: 0 20px 45px rgba(0,0,0,0.09);
+        }
+        .hero {
+            display: grid;
+            gap: 20px;
+        }
+        .hero h1 {
+            font-size: clamp(2.4rem, 4vw, 4rem);
+            line-height: 1.05;
+        }
+        .hero p,
+        .card p,
+        .card li {
+            line-height: 1.75;
+            color: #5f5b61;
+        }
+        .features-list {
+            list-style: none;
+            padding-left: 0;
+            display: grid;
+            gap: 10px;
+        }
+        .features-list li::before {
+            content: '✓';
+            margin-right: 10px;
+            color: #ff6818;
+        }
+        .proxy-card {
+            display: grid;
+            gap: 18px;
+        }
+        .proxy-card label {
+            font-weight: 700;
+            color: #1d1d1f;
+        }
+        .proxy-input-row {
+            display: grid;
+            grid-template-columns: 1fr 180px;
+            gap: 14px;
+        }
+        .proxy-input {
+            width: 100%;
+            padding: 18px 20px;
+            border-radius: 22px;
+            border: 2px solid #ff6818;
+            background: #fff;
+            color: #1d1d1f;
+            outline: none;
+            font-size: 1rem;
+        }
+        .proxy-button {
+            border: none;
+            border-radius: 22px;
+            background: #ff6818;
+            color: #fff;
+            font-weight: 800;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            padding: 0 18px;
+        }
+        .proxy-button:hover,
+        .proxy-button:focus-visible {
+            transform: translateY(-2px);
+            box-shadow: 0 16px 28px rgba(255, 104, 24, 0.26);
+        }
+        .iframe-container {
+            min-height: 520px;
+            border-radius: 24px;
+            overflow: hidden;
+            border: 2px solid #ff6818;
+            background: #fff;
+        }
+        .proxy-frame {
+            width: 100%;
+            min-height: 520px;
+            border: none;
+        }
+        .log-list {
+            display: grid;
+            gap: 16px;
+        }
+        .log-item {
+            background: #fff;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 104, 24, 0.24);
+            padding: 18px;
+        }
+        .log-item time {
+            display: block;
+            margin-bottom: 10px;
+            color: #8a807a;
+            font-size: 0.92rem;
+        }
+        .log-item strong {
+            display: block;
+            margin-bottom: 10px;
+            color: #1d1d1f;
+        }
+        .note {
+            margin-top: 8px;
+            color: #8a807a;
+            font-size: 0.95rem;
+        }
+        @media (max-width: 980px) {
+            .app-shell {
+                grid-template-columns: 1fr;
+            }
+            .hotbar {
+                flex-direction: row;
+                justify-content: center;
+                border-right: none;
+                border-bottom: 2px solid #ff6818;
+            }
+            .hotbar-footer {
+                display: none;
+            }
+            .proxy-input-row {
+                grid-template-columns: 1fr;
+            }
+            .browser-header {
+                padding: 0 18px;
+                grid-template-columns: 1fr;
+            }
+            .browser-controls {
+                justify-content: flex-end;
+                width: 100%;
+            }
+            .proxy-frame {
+                min-height: 520px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="hotbar">
+            <div class="brand">T</div>
+            <button type="button" data-target="top">🏠</button>
+            <button type="button" data-target="log">📝</button>
+            <button type="button" data-target="features">✨</button>
+            <div class="hotbar-footer">taby proxy</div>
+        </aside>
+        <div class="main-panel">
+            <div class="browser-header">
+                <div class="browser-brand">
+                    <div class="browser-logo">tabyproxy</div>
+                    <div class="browser-title">Browser Emulator</div>
+                </div>
+                <div class="address-bar-container">
+                    <span class="lock-icon">🔒</span>
+                    <input type="text" class="address-bar" value="https://www.tabyproxy.com" readonly>
+                </div>
+                <div class="browser-controls">
+                    <button id="backButton" type="button" title="Back">◀</button>
+                    <button id="forwardButton" type="button" title="Forward">▶</button>
+                    <button id="refreshButton" type="button" title="Refresh">⟳</button>
+                    <button id="homeButton" type="button" title="Home">🏠</button>
+                </div>
+            </div>
+            <div class="browser-status" id="pageStatus">Ready to browse. Enter a URL and press Open.</div>
+            <div class="content-wrapper">
+                <div class="content">
+                    <section class="card hero" id="top">
+                        <h1>Taby Proxy</h1>
+                        <p>Use this page as a lightweight browser proxy. No install required — open the file in any browser and start using it instantly.</p>
+                        <div class="features-list">
+                            <li>Bright orange and white theme with sleek rounded edges</li>
+                            <li>Left-side hotbar and browser-style header</li>
+                            <li>Proxy page loader using a public CORS bridge</li>
+                            <li>Live update log and page disguise features</li>
+                        </div>
+                    </section>
+
+                    <section class="card proxy-card">
+                        <label for="proxyUrl">Enter website address to proxy</label>
+                        <div class="proxy-input-row">
+                            <input id="proxyUrl" class="proxy-input" type="text" placeholder="https://example.com" value="https://example.com" />
+                            <button id="goButton" class="proxy-button" type="button">Open</button>
+                        </div>
+                        <p class="note">The page will load inside the proxy frame below. Some sites may block framing or external access.</p>
+                    </section>
+
+                    <section class="card iframe-container">
+                        <iframe id="proxyFrame" class="proxy-frame" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+                    </section>
+
+                    <section class="card" id="log">
+                        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+                            <h2>Update Log</h2>
+                            <span style="padding:10px 16px;border-radius:999px;background:rgba(255,104,24,0.12);color:#ff6818;font-size:0.9rem;font-weight:700;">Auto refreshes when proxy navigation changes</span>
+                        </div>
+                        <div id="logList" class="log-list"></div>
+                    </section>
+
+                    <section class="card" id="features">
+                        <h2>How It Works</h2>
+                        <p>This page simulates a browser proxy interface. It fetches remote HTML through a public CORS bridge, rewrites navigation so links stay in the proxy frame, and preserves the tab title and cute kitten favicon.</p>
+                        <p>Because it runs entirely in your browser, there is no installation needed. Just open this file in any modern browser.</p>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const proxyUrlInput = document.getElementById('proxyUrl');
+        const goButton = document.getElementById('goButton');
+        const proxyFrame = document.getElementById('proxyFrame');
+        const logList = document.getElementById('logList');
+        const navButtons = document.querySelectorAll('.hotbar button[data-target]');
+        const backButton = document.getElementById('backButton');
+        const forwardButton = document.getElementById('forwardButton');
+        const refreshButton = document.getElementById('refreshButton');
+        const homeButton = document.getElementById('homeButton');
+        const addressBar = document.querySelector('.address-bar');
+        const pageStatus = document.getElementById('pageStatus');
+
+        let historyStack = [];
+        let historyIndex = -1;
+        const updateLog = [
+            { date: '2026-05-19', title: 'Taby Proxy static app created', detail: 'Built a standalone browser emulator page with remote site loading and navigation history.' },
+            { date: '2026-05-19', title: 'SPA proxy emulator enabled', detail: 'Added back/forward controls, refresh, home, and browser-style header for in-page hosting.' }
+        ];
+
+        function renderLog() {
+            logList.innerHTML = updateLog.map(entry => `
+                <article class="log-item">
+                    <time>${entry.date}</time>
+                    <strong>${entry.title}</strong>
+                    <p>${entry.detail}</p>
+                </article>
+            `).join('');
+        }
+
+        function updatePageTitle() {
+            document.title = 'tabyproxy';
+        }
+
+        function setAddressBar(url) {
+            addressBar.value = url;
+        }
+
+        function setStatus(text) {
+            pageStatus.textContent = text;
+        }
+
+        function updateNavigationButtons() {
+            backButton.disabled = historyIndex <= 0;
+            forwardButton.disabled = historyIndex >= historyStack.length - 1;
+        }
+
+        function addLogEntry(title, detail) {
+            const date = new Date().toISOString().split('T')[0];
+            updateLog.unshift({ date, title, detail });
+            if (updateLog.length > 8) updateLog.pop();
+            renderLog();
+        }
+
+        function normalizeUrl(value) {
+            const trimmed = value.trim();
+            if (!trimmed) return '';
+            if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+                return trimmed;
+            }
+            return `https://${trimmed}`;
+        }
+
+        async function fetchPage(url) {
+            const proxyServices = [
+                'https://api.allorigins.win/raw?url=',
+                'https://corsproxy.io/?',
+                'https://api.allorigins.win/raw?url='
+            ];
+
+            for (const service of proxyServices) {
+                try {
+                    const response = await fetch(service + encodeURIComponent(url));
+                    if (!response.ok) continue;
+                    return await response.text();
+                } catch (_) {
+                    continue;
+                }
+            }
+            throw new Error('Could not load page through public proxy bridges.');
+        }
+
+        function rewriteHtml(sourceHtml, baseUrl) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(sourceHtml, 'text/html');
+            let base = doc.querySelector('base');
+            if (!base) {
+                base = doc.createElement('base');
+                base.href = baseUrl;
+                doc.head.prepend(base);
+            } else {
+                base.href = baseUrl;
+            }
+
+            doc.querySelectorAll('script').forEach(script => script.remove());
+            doc.querySelectorAll('noscript').forEach(noscript => noscript.remove());
+
+            const safeSelectors = ['a[href]', 'link[href]', 'img[src]', 'iframe[src]', 'source[srcset]', 'video[src]', 'audio[src]'];
+            safeSelectors.forEach(selector => {
+                doc.querySelectorAll(selector).forEach(element => {
+                    const attribute = element.hasAttribute('href') ? 'href' : element.hasAttribute('src') ? 'src' : 'srcset';
+                    const value = element.getAttribute(attribute);
+                    if (!value) return;
+                    if (attribute === 'srcset') {
+                        const rewritten = value
+                            .split(',')
+                            .map(item => {
+                                const [urlPart, descriptor] = item.trim().split(/\s+/);
+                                const resolved = new URL(urlPart, baseUrl).href;
+                                return `${resolved}${descriptor ? ' ' + descriptor : ''}`;
+                            })
+                            .join(', ');
+                        element.setAttribute(attribute, rewritten);
+                        return;
+                    }
+                    if (attribute === 'href' || attribute === 'src') {
+                        if (value.startsWith('javascript:') || value.startsWith('mailto:') || value.startsWith('tel:') || value.startsWith('#')) return;
+                        const resolvedUrl = new URL(value, baseUrl).href;
+                        if (element.tagName.toLowerCase() === 'a') {
+                            element.setAttribute('href', '#');
+                            element.setAttribute('data-proxy-link', resolvedUrl);
+                        } else {
+                            element.setAttribute(attribute, resolvedUrl);
+                        }
+                    }
+                });
+            });
+
+            doc.querySelectorAll('form[action]').forEach(form => {
+                form.setAttribute('action', '#');
+                form.setAttribute('data-proxy-form', 'true');
+            });
+
+            const injected = doc.createElement('script');
+            injected.innerHTML = `
+                document.addEventListener('click', event => {
+                    const link = event.target.closest('[data-proxy-link]');
+                    if (!link) return;
+                    event.preventDefault();
+                    parent.postMessage({ type: 'tabyproxy-navigate', url: link.getAttribute('data-proxy-link') }, '*');
+                });
+                document.addEventListener('submit', event => {
+                    const form = event.target.closest('[data-proxy-form]');
+                    if (!form) return;
+                    event.preventDefault();
+                    const action = form.getAttribute('action') || location.href;
+                    const destination = new URL(action, location.href).href;
+                    parent.postMessage({ type: 'tabyproxy-navigate', url: destination }, '*');
+                });
+            `;
+            doc.body.appendChild(injected);
+            return '<!DOCTYPE html>' + doc.documentElement.outerHTML;
+        }
+
+        async function loadProxyPage(url, recordHistory = true) {
+            const normalized = normalizeUrl(url);
+            if (!normalized) return;
+            setAddressBar(normalized);
+            setStatus('Loading ' + normalized + '...');
+            if (recordHistory) {
+                historyStack.splice(historyIndex + 1);
+                historyStack.push(normalized);
+                historyIndex = historyStack.length - 1;
+                updateNavigationButtons();
+            }
+
+            try {
+                const pageHtml = await fetchPage(normalized);
+                const safeHtml = rewriteHtml(pageHtml, normalized);
+                proxyFrame.srcdoc = safeHtml;
+                addLogEntry('Loaded proxy page', normalized);
+                setStatus(`Loaded ${normalized}`);
+            } catch (error) {
+                proxyFrame.srcdoc = `<body style="font-family: system-ui, sans-serif; padding: 24px;"><h1 style="color:#ff6818;">Proxy failed</h1><p>${error.message}</p><p>Try another website or refresh the page.</p></body>`;
+                addLogEntry('Proxy failed', error.message);
+                setStatus('Unable to load the requested site.');
+            }
+        }
+
+        function goBack() {
+            if (historyIndex <= 0) return;
+            historyIndex -= 1;
+            updateNavigationButtons();
+            loadProxyPage(historyStack[historyIndex], false);
+            setStatus('Navigated back');
+        }
+
+        function goForward() {
+            if (historyIndex >= historyStack.length - 1) return;
+            historyIndex += 1;
+            updateNavigationButtons();
+            loadProxyPage(historyStack[historyIndex], false);
+            setStatus('Navigated forward');
+        }
+
+        function refreshPage() {
+            if (historyIndex < 0) return;
+            loadProxyPage(historyStack[historyIndex], false);
+        }
+
+        function goHome() {
+            loadProxyPage('https://example.com');
+        }
+
+        goButton.addEventListener('click', () => loadProxyPage(proxyUrlInput.value));
+        proxyUrlInput.addEventListener('keydown', event => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                loadProxyPage(proxyUrlInput.value);
+            }
+        });
+
+        backButton.addEventListener('click', goBack);
+        forwardButton.addEventListener('click', goForward);
+        refreshButton.addEventListener('click', refreshPage);
+        homeButton.addEventListener('click', goHome);
+
+        window.addEventListener('message', event => {
+            const message = event.data;
+            if (!message || message.type !== 'tabyproxy-navigate') return;
+            proxyUrlInput.value = message.url;
+            loadProxyPage(message.url);
+        });
+
+        navButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const target = document.getElementById(button.dataset.target);
+                if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        });
+
+        document.addEventListener('keydown', event => {
+            if (
+                event.key === 'F12' ||
+                (event.ctrlKey && event.shiftKey && ['I', 'J', 'C'].includes(event.key.toUpperCase())) ||
+                (event.ctrlKey && event.key.toUpperCase() === 'S') ||
+                (event.metaKey && event.shiftKey && event.key.toUpperCase() === 'I')
+            ) {
+                event.preventDefault();
+            }
+        });
+
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        document.addEventListener('selectstart', event => event.preventDefault());
+
+        setInterval(updatePageTitle, 100);
+        updatePageTitle();
+        renderLog();
+        updateNavigationButtons();
+        loadProxyPage(proxyUrlInput.value);
+    </script>
+</body>
+</html>

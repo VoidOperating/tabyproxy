@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Taby Proxy</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="hotbar">
+        <div class="brand">T</div>
+        <button type="button" data-target="hero" aria-label="Home">🏠</button>
+        <button type="button" data-target="log-panel" aria-label="Update log">📝</button>
+        <button type="button" data-target="details" aria-label="Info">✨</button>
+        <div class="hotbar-footer">taby proxy</div>
+      </aside>
+
+      <main class="content">
+        <section class="hero" id="hero">
+          <div class="hero-copy">
+            <span class="eyebrow">Welcome to</span>
+            <h1>Taby Proxy</h1>
+            <p>Browse blocked sites safely with a sleek built-in proxy engine. Paste a URL and hit the orange button.</p>
+          </div>
+          <form id="proxyForm" class="search-card">
+            <label for="targetUrl">Enter a website address</label>
+            <div class="input-row">
+              <input id="targetUrl" name="url" type="url" placeholder="https://example.com" required />
+              <button class="primary" type="submit">Launch Proxy</button>
+            </div>
+          </form>
+        </section>
+
+        <section class="log-panel" id="log-panel">
+          <div class="panel card">
+            <div class="panel-header">
+              <h2>Update Log</h2>
+              <span class="tag">Auto refreshes on change</span>
+            </div>
+            <div id="updates" class="log-list">
+              <p>Loading latest entries...</p>
+            </div>
+          </div>
+          <div class="panel card" id="details">
+            <div class="panel-header">
+              <h2>Proxy Engine</h2>
+            </div>
+            <p>Taby Proxy fetches remote pages and rewrites links so you can navigate directly through this site.</p>
+            <ul>
+              <li>Bright orange and white interface</li>
+              <li>Rounded cards and clean outlines</li>
+              <li>Built-in browser proxy route</li>
+              <li>Auto-updating log from the server</li>
+            </ul>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
